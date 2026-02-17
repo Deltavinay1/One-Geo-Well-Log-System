@@ -78,10 +78,15 @@ async function parseAndInsertLAS(filePath, wellId) {
       }
     }
 
-    const depthCurve = curves.find(
-      (c) => c.toLowerCase() === "depth" || c.toLowerCase() === "dept"
-    );
+    const depthCurve = curves.find((c) => {
+  const lc = c.toLowerCase();
+  return lc === "depth" || lc.startsWith("dept") || lc.includes("depth") || lc === "md";
+});
 
+if (!depthCurve) {
+  console.error("❌ Depth curve not found. Curves:", curves);
+  return;
+}
     await pool.query(
       "UPDATE wells SET depth_curve = $1 WHERE id = $2",
       [depthCurve, wellId]
