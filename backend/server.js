@@ -29,6 +29,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   console.log("Upload started:", req.file.originalname);
 
   try {
+    // Clear old data for fresh upload
+    await pool.query("TRUNCATE TABLE logs RESTART IDENTITY CASCADE");
+    await pool.query("TRUNCATE TABLE wells RESTART IDENTITY CASCADE");
+
     //Upload raw LAS to S3
     const s3Url = await uploadToS3(req.file.path, req.file.originalname);
 
