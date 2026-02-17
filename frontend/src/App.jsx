@@ -25,7 +25,7 @@ export default function App() {
     setLoadingCurves(true);
 
     //backend parses LAS in background
-    let attempts = 10;
+    let attempts = 60;
 
     const pollCurves = async () => {
       try {
@@ -35,7 +35,7 @@ export default function App() {
           setLoadingCurves(false);
         } else if (attempts > 0) {
           attempts--;
-          setTimeout(pollCurves, 1000);
+          setTimeout(pollCurves, 2000);
         } else {
           setLoadingCurves(false);
         }
