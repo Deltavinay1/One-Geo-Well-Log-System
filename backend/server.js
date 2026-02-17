@@ -71,6 +71,7 @@ async function parseAndInsertLAS(filePath, wellId) {
           }
         }
       }
+
       if (lines[i].toUpperCase().includes("~ASCII")) {
         asciiIndex = i + 1;
         break;
@@ -78,14 +79,14 @@ async function parseAndInsertLAS(filePath, wellId) {
     }
 
     const depthCurve = curves.find(
-      (c) => c.toLowerCase() === "depth" || c.toLowerCase() === "dept",
+      (c) => c.toLowerCase() === "depth" || c.toLowerCase() === "dept"
     );
 
-    await pool.query("UPDATE wells SET depth_curve = $1 WHERE id = $2", 
+    await pool.query(
+      "UPDATE wells SET depth_curve = $1 WHERE id = $2",
       [depthCurve, wellId]
     );
 
-    //Batch insert
     const BATCH_SIZE = 1000;
     let batch = [];
 
@@ -110,15 +111,24 @@ async function parseAndInsertLAS(filePath, wellId) {
     if (batch.length) {
       await insertBatch(batch);
     }
+    
+    await pool.query(
+      "UPDATE wells SET parsed = TRUE WHERE id = $1",
+      [wellId]
+    );
 
     console.log("Parsing complete for well:", wellId);
+
   } catch (err) {
     console.error("Background parsing failed:", err);
 
   } finally {
     fs.unlink(filePath, (err) => {
-      if (err) console.error("Failed to delete temp file:");
-      else console.log("Temp file deleted:");
+      if (err) {
+        console.error("Failed to delete temp file:", err.message);
+      } else {
+        console.log("Temp file deleted:", filePath);
+      }
     });
   }
 }
