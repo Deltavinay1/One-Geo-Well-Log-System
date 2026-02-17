@@ -1,24 +1,39 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API = axios.create({
+  baseURL: import.meta.env.BACKEND_URL,
+});
+
 function UploadForm({ onUploadSuccess }) {
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const upload = async () => {
     if (!file) return alert("Select LAS file");
 
-    const form = new FormData();
-    form.append("file", file);
+    try {
+      setLoading(true);
 
-    const res = await axios.post("http://localhost:5000/upload", form);
-    onUploadSuccess(res.data.wellId);
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await API.post("/upload", form);
+
+      onUploadSuccess(res.data.wellId);
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-      <button className="button" onClick={upload}>
-        Upload LAS
+      <button onClick={upload} disabled={loading}>
+        {loading ? "Uploading..." : "Upload LAS"}
       </button>
     </div>
   );
